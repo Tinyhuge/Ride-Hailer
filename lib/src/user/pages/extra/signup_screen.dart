@@ -4,7 +4,9 @@ import 'package:flutter/src/widgets/framework.dart';
 import 'package:ride_hailer/src/user/pages/extra/login_screen.dart';
 
 class SignupScreen extends StatefulWidget {
-  const SignupScreen({super.key});
+  SignupScreen({super.key, required this.isDriver});
+
+  bool isDriver;
 
   @override
   State<SignupScreen> createState() => _SignupScreenState();
@@ -26,28 +28,53 @@ class _SignupScreenState extends State<SignupScreen> {
   }
 
   Widget vehicleDropDown() {
-    return SizedBox(
-      width: MediaQuery.of(context).size.width,
-      child: Card(
-        elevation: 2,
-        shape: RoundedRectangleBorder(
-          borderRadius: BorderRadius.circular(5.0),
-        ),
-        child: DropdownButton(
-          value: dropdownvalue,
-          icon: const Icon(Icons.keyboard_arrow_down),
-          items: items.map((String items) {
-            return DropdownMenuItem(
-              value: items,
-              child: Text(items),
-            );
-          }).toList(),
-          onChanged: (String? newValue) {
-            setState(() {
-              dropdownvalue = newValue!;
-            });
-          },
-        ),
+    return Visibility(
+      visible: widget.isDriver == true ? true : false,
+      child: Column(
+        children: [
+          Container(
+            padding: const EdgeInsets.only(left: 8, bottom: 6),
+            width: MediaQuery.of(context).size.width,
+            child: const Text("Choose Your Vehicle Type",
+                textAlign: TextAlign.start,
+                style: TextStyle(
+                  fontWeight: FontWeight.w500,
+                  fontSize: 15,
+                )),
+          ),
+          Container(
+            width: MediaQuery.of(context).size.width,
+            child: Card(
+              elevation: 1,
+              shape: RoundedRectangleBorder(
+                borderRadius: BorderRadius.circular(5.0),
+              ),
+              child: DropdownButton(
+                hint: const Text("Choose Vehicle Type"),
+                style: const TextStyle(
+                    fontWeight: FontWeight.w600,
+                    fontSize: 18,
+                    color: Colors.black),
+                value: dropdownvalue,
+                icon: const Icon(Icons.keyboard_arrow_down),
+                items: items.map((String items) {
+                  return DropdownMenuItem(
+                    value: items,
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Text(items),
+                    ),
+                  );
+                }).toList(),
+                onChanged: (String? newValue) {
+                  setState(() {
+                    dropdownvalue = newValue!;
+                  });
+                },
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
@@ -107,7 +134,9 @@ class _SignupScreenState extends State<SignupScreen> {
                       Navigator.pushAndRemoveUntil(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => const LoginScreen()),
+                            builder: (context) => LoginScreen(
+                                  isDriver: widget.isDriver,
+                                )),
                         (route) {
                           return true;
                         },
@@ -141,7 +170,7 @@ class _SignupScreenState extends State<SignupScreen> {
                 borderRadius: BorderRadius.circular(24.0),
               ))),
           child: const Text(
-            "Login",
+            "Create Account",
             style: TextStyle(
                 fontSize: 18, fontWeight: FontWeight.w500, color: Colors.white),
           )),

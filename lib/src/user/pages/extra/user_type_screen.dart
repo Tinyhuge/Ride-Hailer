@@ -48,7 +48,9 @@ class UserTypeScreen extends StatelessWidget {
                       Navigator.pushAndRemoveUntil(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => const LoginScreen()),
+                            builder: (context) => LoginScreen(
+                                  isDriver: false,
+                                )),
                         (route) {
                           return true;
                         },
@@ -59,7 +61,18 @@ class UserTypeScreen extends StatelessWidget {
                 calculateFareButton(
                     buttonText: "I Am Driver",
                     context: context,
-                    onTap: () {},
+                    onTap: () {
+                      Navigator.pushAndRemoveUntil(
+                        context,
+                        MaterialPageRoute(
+                            builder: (context) => LoginScreen(
+                                  isDriver: true,
+                                )),
+                        (route) {
+                          return true;
+                        },
+                      );
+                    },
                     buttonColor: Colors.white,
                     buttonTextColor: Colors.black)
               ],

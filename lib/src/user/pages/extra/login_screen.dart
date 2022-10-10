@@ -2,9 +2,16 @@
 import 'package:flutter/material.dart';
 import 'package:ride_hailer/src/user/pages/extra/signup_screen.dart';
 
-class LoginScreen extends StatelessWidget {
-  const LoginScreen({super.key});
+class LoginScreen extends StatefulWidget {
+  LoginScreen({super.key, required this.isDriver});
 
+  bool isDriver;
+
+  @override
+  State<LoginScreen> createState() => _LoginScreenState();
+}
+
+class _LoginScreenState extends State<LoginScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -53,7 +60,9 @@ class LoginScreen extends StatelessWidget {
                       Navigator.pushAndRemoveUntil(
                         context,
                         MaterialPageRoute(
-                            builder: (context) => const SignupScreen()),
+                            builder: (context) => SignupScreen(
+                                  isDriver: widget.isDriver,
+                                )),
                         (route) {
                           return true;
                         },
