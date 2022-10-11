@@ -33,16 +33,18 @@ class _LoginScreenState extends State<LoginScreen> {
                   style: TextStyle(fontSize: 23, fontWeight: FontWeight.w600)),
               const SizedBox(height: 30),
               textFieldWidget(
-                  hintText: "Email",
-                  email: true,
-                  prefixColor: Colors.yellow,
-                  initialValue: "Email"),
+                hintText: "Email",
+                inputType: TextInputType.emailAddress,
+                email: true,
+                prefixColor: Colors.yellow,
+              ),
               const SizedBox(height: 15),
               textFieldWidget(
-                  hintText: "Password",
-                  email: false,
-                  prefixColor: Colors.yellow,
-                  initialValue: "Password"),
+                inputType: TextInputType.visiblePassword,
+                hintText: "Password",
+                email: false,
+                prefixColor: Colors.yellow,
+              ),
               const SizedBox(height: 30),
               calculateFareButton(context),
               const SizedBox(height: 18),
@@ -105,9 +107,9 @@ class _LoginScreenState extends State<LoginScreen> {
 
   Widget textFieldWidget(
       {required Color prefixColor,
-      required String initialValue,
       required bool email,
       required String hintText,
+      required TextInputType inputType,
       Function()? onTap}) {
     return Card(
         elevation: 2,
@@ -115,6 +117,7 @@ class _LoginScreenState extends State<LoginScreen> {
           borderRadius: BorderRadius.circular(24.0),
         ),
         child: TextFormField(
+            keyboardType: inputType,
             autofocus: false,
             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
             decoration: InputDecoration(
@@ -134,7 +137,6 @@ class _LoginScreenState extends State<LoginScreen> {
                   ),
                   borderSide: BorderSide(color: Colors.grey, width: 0.0),
                 )),
-            initialValue: initialValue,
             onTap: onTap));
   }
 
