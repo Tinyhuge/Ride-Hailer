@@ -5,7 +5,7 @@ class API {
       "${BaseUrl.BASE_URL}/auth/register/newuser";
   static const String registerDriver =
       "${BaseUrl.BASE_URL}/auth/register/newuser";
-  static const String loginUser = "${BaseUrl.BASE_URL}/auth/register/newuser";
+  static const String loginUser = "${BaseUrl.BASE_URL}/auth/signin";
   static const String loginDriver = "${BaseUrl.BASE_URL}/auth/register/newuser";
   static const String getFare = "";
   static const String fetchAvailableVehicles = "";

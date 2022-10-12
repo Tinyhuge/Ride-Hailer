@@ -1,4 +1,4 @@
-// ignore_for_file: avoid_print
+// ignore_for_file: avoid_print, prefer_typing_uninitialized_variables
 
 import 'dart:math';
 
@@ -7,6 +7,7 @@ import 'package:flutter/services.dart';
 import 'package:geolocator/geolocator.dart';
 import 'package:geocoding/geocoding.dart';
 import 'package:ride_hailer/src/user/constants/image_urls.dart';
+import 'package:ride_hailer/src/user/data/APIs/rest_methods.dart';
 import 'package:ride_hailer/src/user/pages/extra/login_screen.dart';
 
 class SignupScreen extends StatefulWidget {
@@ -22,17 +23,18 @@ class _SignupScreenState extends State<SignupScreen> {
   String fName = "";
   String lName = "";
   String email = "";
-  String phone = "";
+  var phone = 1;
   String password = "";
   String dropdownvalue = 'Car';
-  String vehicleRegistrationNumber = "KA${Random().nextInt(6)}";
+  String locationLatLong = "";
+  String locationName = "";
+  String vehicleRegistrationNumber = "KA${Random().nextInt(10000)}";
   double lat = 0.0;
   double long = 0.0;
   String randomProfileUrl = ImageUrls
       .dummyProfileList[Random().nextInt(ImageUrls.dummyProfileList.length)];
-
-  // List of items in our dropdown menu
   var items = ['Car', 'Bike', 'Auto', 'Bus'];
+  BuildContext? progressDialogContext;
 
   Map<String, dynamic> requestDataUser = {
     'firstName': 'A',
@@ -84,6 +86,7 @@ class _SignupScreenState extends State<SignupScreen> {
 
   @override
   void initState() {
+    getDeviceCurrentLocation();
     super.initState();
   }
 
@@ -99,6 +102,79 @@ class _SignupScreenState extends State<SignupScreen> {
         ));
   }
 
+  void afterSuccessfulRegestration() {
+    //Navigator.pop(context);
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(
+          builder: (context) => LoginScreen(
+                isDriver: widget.isDriver,
+              )),
+      (route) {
+        return true;
+      },
+    );
+  }
+
+  Future<void> registerDriver() async {
+    showLoaderDialog(context);
+    String curLoc = await getDeviceCurrentLocation();
+    String locName = await getLocationNameFromLatLong();
+    String vrn = getRandomVehicleId();
+    RestMethod restMethod = RestMethod();
+    restMethod
+        .registerUser(
+            firstName: fName,
+            lastName: lName,
+            email: email,
+            password: password,
+            deviceToken: "deviceToken",
+            userType: widget.isDriver == true ? "DRIVER" : "PASSENGER",
+            mobileNumber: phone,
+            profilePicUrl: randomProfileUrl,
+            locationName: locName,
+            locationLatLong: curLoc,
+            vehicleType: dropdownvalue,
+            vehicleRegisterationNumber: vrn)
+        .then((value) {
+      print("Register API Value Msg : ${value.successMessage}");
+      print("Register API Value Code : ${value.successCode}");
+      Navigator.pop(progressDialogContext!);
+      afterSuccessfulRegestration();
+    }).onError((error, stackTrace) {
+      print("Register API Error : $error");
+      Navigator.pop(progressDialogContext!);
+    });
+  }
+
+  Future<void> registerUser() async {
+    showLoaderDialog(context);
+    RestMethod restMethod = RestMethod();
+    restMethod
+        .registerUser(
+            firstName: fName,
+            lastName: lName,
+            email: email,
+            password: password,
+            deviceToken: "deviceToken",
+            userType: widget.isDriver == true ? "DRIVER" : "PASSENGER",
+            mobileNumber: phone,
+            profilePicUrl: randomProfileUrl,
+            locationName: "",
+            locationLatLong: "",
+            vehicleType: "",
+            vehicleRegisterationNumber: "")
+        .then((value) {
+      print("Register API Value Msg : ${value.successMessage}");
+      print("Register API Value Code : ${value.successCode}");
+      afterSuccessfulRegestration();
+      Navigator.pop(progressDialogContext!);
+    }).onError((error, stackTrace) {
+      print("Register API Error : $error");
+      Navigator.pop(progressDialogContext!);
+    });
+  }
+
   Future<String> getDeviceCurrentLocation() async {
     Position position = await Geolocator.getCurrentPosition(
         desiredAccuracy: LocationAccuracy.high);
@@ -112,24 +188,82 @@ class _SignupScreenState extends State<SignupScreen> {
     setState(() {
       lat = lattitude;
       long = longitude;
+      locationLatLong = latlongString;
     });
 
-    print("Lattitude : $lattitude");
-    print("Longitude : $longitude");
-    print("Timestamp : ${position.timestamp}");
-    print("Speed : ${position.speed}");
+    // print("Lattitude : $lattitude");
+    // print("Longitude : $longitude");
+    // print("Timestamp : ${position.timestamp}");
+    // print("Speed : ${position.speed}");
 
     return latlongString;
   }
 
-  Future<void> getLocationNameFromLatLong() async {
-    List<Placemark> placemarks = await placemarkFromCoordinates(lat, long);
+  void verifyAllBodyData() async {
+    String curLoc = await getDeviceCurrentLocation();
+    String locName = await getLocationNameFromLatLong();
+    String vrn = getRandomVehicleId();
+    print("firstName : $fName");
+    print("lastName : $lName");
+    print("email : $email");
+    print("phone : $phone");
+    print("password : $password");
+    print("deviceToken : ----");
+    print("userType : ${widget.isDriver == true ? "Driver" : "User"}");
+    print('profilePicUrl : $randomProfileUrl');
+    print('locationName : $curLoc');
+    print('locationLatLong : $locName');
+    print('vehicleType : $dropdownvalue');
+    print('vehicleRegestrationNumber : $vrn');
+  }
 
-    for (var place in placemarks) {
-      {
-        print("Place : $place");
-      }
+  String getRandomVehicleId() {
+    var rndNumber;
+    var rng = Random();
+    for (var i = 0; i < 1000; i++) {
+      rndNumber = rng.nextInt(1000000);
     }
+    setState(() {
+      vehicleRegistrationNumber = "KA$rndNumber";
+    });
+    return "KA$rndNumber";
+  }
+
+  Future<String> getLocationNameFromLatLong() async {
+    List<Placemark> placemarks = await placemarkFromCoordinates(lat, long);
+    String completePlaceName = "No Address Found!";
+    if (placemarks.isNotEmpty) {
+      completePlaceName =
+          "${placemarks[0].subLocality!}, ${placemarks[0].thoroughfare!}, ${placemarks[0].locality!}, ${placemarks[0].subAdministrativeArea!}, ${placemarks[0].administrativeArea!}, ${placemarks[0].postalCode!}, ${placemarks[0].country!}";
+    }
+    setState(() {
+      locationName = completePlaceName;
+    });
+
+    //  print("cpn : $completePlaceName");
+
+    return completePlaceName;
+  }
+
+  showLoaderDialog(BuildContext context0) {
+    AlertDialog alert = AlertDialog(
+      content: Row(
+        children: [
+          const CircularProgressIndicator(),
+          Container(
+              margin: const EdgeInsets.only(left: 7),
+              child: const Text("Registering...")),
+        ],
+      ),
+    );
+    showDialog(
+      barrierDismissible: false,
+      context: context0,
+      builder: (BuildContext context) {
+        progressDialogContext = context;
+        return alert;
+      },
+    );
   }
 
   Widget vehicleDropDown() {
@@ -236,7 +370,7 @@ class _SignupScreenState extends State<SignupScreen> {
               textFieldWidget(
                   onTextChange: (value) {
                     setState(() {
-                      phone = value;
+                      phone = int.tryParse(value)!;
                     });
                   },
                   hintText: "Phone",
@@ -303,12 +437,17 @@ class _SignupScreenState extends State<SignupScreen> {
       width: MediaQuery.of(context).size.width,
       height: 50,
       child: GestureDetector(
-        onLongPress: () {
-          getLocationNameFromLatLong();
+        onDoubleTap: () async {
+          verifyAllBodyData();
         },
+        onLongPress: () {},
         child: ElevatedButton(
             onPressed: () {
-              getDeviceCurrentLocation();
+              if (widget.isDriver) {
+                registerDriver();
+              } else {
+                registerUser();
+              }
             },
             style: ButtonStyle(
                 backgroundColor:

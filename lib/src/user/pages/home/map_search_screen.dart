@@ -7,6 +7,8 @@ import 'package:modal_bottom_sheet/modal_bottom_sheet.dart';
 import 'package:ride_hailer/src/user/constants/api_key.dart';
 import 'package:ride_hailer/src/user/data/singleton.dart';
 import 'package:ride_hailer/src/user/pages/home/search_screen.dart';
+import 'package:ride_hailer/src/user/utilities/localstore/token_pref.dart';
+import 'package:ride_hailer/src/user/utilities/localstore/user_details.dart';
 
 class MapSearchScreen extends StatefulWidget {
   MapSearchScreen(
@@ -40,6 +42,12 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
   double mapZoom = 14.0;
   double bangLat = 12.9587464;
   double bangLong = 77.5573456;
+  final userTokenStore = UserTokenStore.getInstance();
+  final TokenStore tokenStore = TokenStore.getInstance();
+  String name = "";
+  String email = "";
+  String userType = "";
+  String accessToken = "";
 
   Future<void> initMapDrawings() async {}
 
@@ -62,10 +70,23 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
     }
   }
 
+  void fetchedLoggedInUser() {
+    if (userTokenStore.getDeviceToken() != null &&
+        userTokenStore.getDeviceToken() != "") {
+      setState(() {
+        name = userTokenStore.getUserName()!;
+        email = userTokenStore.getCurrentUserEmail()!;
+        userType = userTokenStore.getCurrentUserType()!;
+        accessToken = userTokenStore.getDeviceToken()!;
+      });
+    }
+  }
+
   @override
   void initState() {
     initMapMyIndia();
     initMapDrawings();
+    fetchedLoggedInUser();
     super.initState();
   }
 
@@ -183,14 +204,14 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
               Column(
                 mainAxisAlignment: MainAxisAlignment.start,
                 children: [
-                  Text("Rahul KS",
+                  Text(name,
                       textAlign: TextAlign.start,
                       style: TextStyle(
                         fontSize: 15,
                         color: Colors.grey[600],
                         fontWeight: FontWeight.bold,
                       )),
-                  Text("+919471460647",
+                  Text(email,
                       style: TextStyle(
                         fontSize: 14,
                         color: Colors.grey[600],
@@ -513,8 +534,6 @@ class _MapSearchScreenState extends State<MapSearchScreen> {
       ),
     );
   }
-
-  
 
   Future<void> addImageFromAsset(
       String name, String assetName, MapmyIndiaMapController mmp) async {

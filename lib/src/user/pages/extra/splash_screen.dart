@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:ride_hailer/src/user/pages/extra/user_type_screen.dart';
 import 'package:ride_hailer/src/user/pages/home/map_full_screen.dart';
 import 'package:ride_hailer/src/user/pages/home/map_search_screen.dart';
+import 'package:ride_hailer/src/user/utilities/localstore/token_pref.dart';
+import 'package:ride_hailer/src/user/utilities/localstore/user_details.dart';
 
 class SplashScreen extends StatefulWidget {
   SplashScreen({Key? key}) : super(key: key);
@@ -11,6 +13,8 @@ class SplashScreen extends StatefulWidget {
 }
 
 class _SplashScreenState extends State<SplashScreen> {
+  final userTokenStore = UserTokenStore.getInstance();
+  final TokenStore tokenStore = TokenStore.getInstance();
   @override
   void initState() {
     setSplashTimeout();
@@ -21,13 +25,25 @@ class _SplashScreenState extends State<SplashScreen> {
     Future.delayed(
       const Duration(seconds: 3),
       () {
-        Navigator.pushAndRemoveUntil(
-          context,
-          MaterialPageRoute(builder: (context) => const UserTypeScreen()),
-          (route) {
-            return true;
-          },
-        );
+        if (tokenStore.getAuthToken() != null &&
+            tokenStore.getAuthToken() != "") {
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => MapSearchScreen()),
+            (route) {
+              return true;
+            },
+          );
+        }
+        {
+          Navigator.pushAndRemoveUntil(
+            context,
+            MaterialPageRoute(builder: (context) => const UserTypeScreen()),
+            (route) {
+              return true;
+            },
+          );
+        }
       },
     );
   }

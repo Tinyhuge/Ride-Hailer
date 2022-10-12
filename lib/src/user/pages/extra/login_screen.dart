@@ -1,6 +1,11 @@
-// ignore_for_file: prefer_const_literals_to_create_immutables
+// ignore_for_file: prefer_const_literals_to_create_immutables, avoid_print
 import 'package:flutter/material.dart';
+import 'package:ride_hailer/src/user/data/APIs/rest_methods.dart';
+import 'package:ride_hailer/src/user/data/models/LoginModal.dart';
 import 'package:ride_hailer/src/user/pages/extra/signup_screen.dart';
+import 'package:ride_hailer/src/user/pages/home/map_search_screen.dart';
+import 'package:ride_hailer/src/user/utilities/localstore/token_pref.dart';
+import 'package:ride_hailer/src/user/utilities/localstore/user_details.dart';
 
 class LoginScreen extends StatefulWidget {
   LoginScreen({super.key, required this.isDriver});
@@ -12,11 +17,80 @@ class LoginScreen extends StatefulWidget {
 }
 
 class _LoginScreenState extends State<LoginScreen> {
+  String email = "";
+  String password = "";
+  BuildContext? progressDialogContext;
+  final userTokenStore = UserTokenStore.getInstance();
+  final TokenStore tokenStore = TokenStore.getInstance();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
         backgroundColor: const Color.fromARGB(255, 244, 240, 240),
         body: SafeArea(child: parentLayout(context)));
+  }
+
+  void afterSuccessfulRegestration() {
+    Navigator.pushAndRemoveUntil(
+      context,
+      MaterialPageRoute(builder: (context) => MapSearchScreen()),
+      (route) {
+        return true;
+      },
+    );
+  }
+
+  void performPermanentLogin(LoginModal value) {
+    userTokenStore.setCurrentUserName(value.response!.name!);
+    userTokenStore.setCurrentUserId(value.response!.id!);
+    userTokenStore.setCurrentProfileId(value.response!.id!);
+    userTokenStore.setCurrentUserEmail(value.response!.email!);
+    userTokenStore.setCurrentUserType(value.response!.userType!);
+    tokenStore.setAuthToken(value.response!.accessToken!);
+  }
+
+  void logOut() {
+    userTokenStore.setCurrentUserName("");
+    userTokenStore.setCurrentUserId("");
+    userTokenStore.setCurrentProfileId("");
+    userTokenStore.setCurrentUserEmail("");
+    userTokenStore.setCurrentUserType("");
+  }
+
+  Future<void> loginUser() async {
+    showLoaderDialog(context);
+    RestMethod restMethod = RestMethod();
+    restMethod.loginUser(email: email, password: password).then((value) {
+      print("Login API Value Msg : ${value.successMessage}");
+      print("Login API Value Code : ${value.successCode}");
+      performPermanentLogin(value);
+      Navigator.pop(progressDialogContext!);
+      afterSuccessfulRegestration();
+    }).onError((error, stackTrace) {
+      print("Login API Error : $error");
+      Navigator.pop(progressDialogContext!);
+    });
+  }
+
+  showLoaderDialog(BuildContext context0) {
+    AlertDialog alert = AlertDialog(
+      content: Row(
+        children: [
+          const CircularProgressIndicator(),
+          Container(
+              margin: const EdgeInsets.only(left: 7),
+              child: const Text("Registering...")),
+        ],
+      ),
+    );
+    showDialog(
+      barrierDismissible: false,
+      context: context0,
+      builder: (BuildContext context) {
+        progressDialogContext = context;
+        return alert;
+      },
+    );
   }
 
   Widget parentLayout(BuildContext context) {
@@ -33,6 +107,9 @@ class _LoginScreenState extends State<LoginScreen> {
                   style: TextStyle(fontSize: 23, fontWeight: FontWeight.w600)),
               const SizedBox(height: 30),
               textFieldWidget(
+                onTextChange: (value) {
+                  email = value;
+                },
                 hintText: "Email",
                 inputType: TextInputType.emailAddress,
                 email: true,
@@ -40,6 +117,9 @@ class _LoginScreenState extends State<LoginScreen> {
               ),
               const SizedBox(height: 15),
               textFieldWidget(
+                onTextChange: (value) {
+                  password = value;
+                },
                 inputType: TextInputType.visiblePassword,
                 hintText: "Password",
                 email: false,
@@ -89,7 +169,9 @@ class _LoginScreenState extends State<LoginScreen> {
       width: MediaQuery.of(context).size.width,
       height: 50,
       child: ElevatedButton(
-          onPressed: () {},
+          onPressed: () {
+            loginUser();
+          },
           style: ButtonStyle(
               backgroundColor:
                   MaterialStateProperty.all<Color>(Colors.deepPurple[400]!),
@@ -110,13 +192,15 @@ class _LoginScreenState extends State<LoginScreen> {
       required bool email,
       required String hintText,
       required TextInputType inputType,
-      Function()? onTap}) {
+      Function()? onTap,
+      Function(String)? onTextChange}) {
     return Card(
         elevation: 2,
         shape: RoundedRectangleBorder(
           borderRadius: BorderRadius.circular(24.0),
         ),
         child: TextFormField(
+            onChanged: onTextChange,
             keyboardType: inputType,
             autofocus: false,
             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
