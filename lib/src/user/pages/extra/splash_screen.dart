@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:ride_hailer/src/user/pages/extra/chat.dart';
 import 'package:ride_hailer/src/user/pages/extra/user_type_screen.dart';
 import 'package:ride_hailer/src/user/pages/home/map_full_screen.dart';
 import 'package:ride_hailer/src/user/pages/home/map_search_screen.dart';
@@ -17,8 +18,20 @@ class _SplashScreenState extends State<SplashScreen> {
   final TokenStore tokenStore = TokenStore.getInstance();
   @override
   void initState() {
-    setSplashTimeout();
+  
+    dummySplashRedirection();
     super.initState();
+  }
+
+  void dummySplashRedirection() {
+    WidgetsBinding.instance.addPostFrameCallback((_) {
+      Navigator.pushReplacement(
+          context, MaterialPageRoute(builder: (_) => ChatScreen()));
+    });
+    // Navigator.push(
+    //   context,
+    //   MaterialPageRoute(builder: (context) => const ChatScreen()),
+    // );
   }
 
   void setSplashTimeout() {
