@@ -18,8 +18,8 @@ class _SplashScreenState extends State<SplashScreen> {
   final TokenStore tokenStore = TokenStore.getInstance();
   @override
   void initState() {
-  
-    dummySplashRedirection();
+    //dummySplashRedirection();
+    setSplashTimeout();
     super.initState();
   }
 

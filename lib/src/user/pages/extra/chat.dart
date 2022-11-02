@@ -1,5 +1,7 @@
 // ignore_for_file: avoid_print
 
+import 'dart:math';
+
 import 'package:flutter/material.dart';
 import 'package:socket_io_client/socket_io_client.dart' as IO;
 
@@ -11,21 +13,21 @@ class ChatScreen extends StatefulWidget {
 }
 
 class _ChatScreenState extends State<ChatScreen> {
+  late IO.Socket socket;
+  String message = "";
+
   main() {
-    // Dart client
-    IO.Socket socket = IO.io('http://192.168.0.102:5000');
+    socket = IO.io('http://192.168.0.105:5000');
     socket.onConnect((_) {
       print('connected to API Websocket');
-      socket.emit('chat message', {"message": "mmmm", "nick": "usuus89"});
+      // socket.emit('chat message', {"message": "mmmm", "nick": "usuus89"});
     });
     socket.on('new user', (data) => print(data));
-    // socket.onDisconnect((_) => print('disconnect'));
-    // socket.on('fromServer', (_) => print(_));
   }
 
   @override
   void initState() {
-    // main();
+    main();
     super.initState();
   }
 
@@ -53,6 +55,9 @@ class _ChatScreenState extends State<ChatScreen> {
               ),
               chatListView(),
               textFieldWidget(
+                  onTextChange: (value) {
+                    message = value;
+                  },
                   prefixColor: Colors.yellow,
                   initialValue: "",
                   icon: Icons.chat_bubble,
@@ -61,6 +66,19 @@ class _ChatScreenState extends State<ChatScreen> {
             ],
           )),
     )));
+  }
+
+  String getRandomVehicleId() {
+    var rndNumber;
+    var rng = Random();
+    for (var i = 0; i < 1000; i++) {
+      rndNumber = rng.nextInt(1000000);
+    }
+    return "User$rndNumber";
+  }
+
+  void sendMessageToSocket(String msg) {
+    socket.emit('chat message', {'message': '', 'nick': getRandomVehicleId()});
   }
 
   Container chatListView() {
@@ -135,7 +153,12 @@ class _ChatScreenState extends State<ChatScreen> {
             style: const TextStyle(fontSize: 16, fontWeight: FontWeight.w500),
             decoration: InputDecoration(
                 hintText: hintText,
-                suffixIcon: const Icon(Icons.send),
+                suffixIcon: GestureDetector(
+                    onTap: () {
+                      sendMessageToSocket(message);
+                      print("send btn clicked..");
+                    },
+                    child: const Icon(Icons.send)),
                 prefixIcon: Icon(icon),
                 focusedBorder: const OutlineInputBorder(
                   borderRadius: BorderRadius.all(
